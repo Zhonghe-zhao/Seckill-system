@@ -90,6 +90,7 @@ CREATE TABLE products (
 | Redis        | 高性能缓存，用于库存信息等热点数据       |
 | JSON         | 数据交互格式                  |
 | time.RFC3339 | 秒杀时间格式解析                |
+| viper        | 避免硬解码                    |
 
 ---
 
