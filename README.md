@@ -4,7 +4,7 @@
 
 ---
 
-## 📁 项目结构说明（internal/）
+## 项目结构说明（internal/）
 
 ```
 
@@ -21,7 +21,7 @@ internal/
 
 ---
 
-## 🔁 请求处理流程图（商品初始化）
+## 请求处理流程图（商品初始化）
 
 ```plaintext
 前端发送 POST /initialize-product 请求
@@ -40,7 +40,7 @@ Handler 解析 JSON 请求体 + 参数校验
 
 ---
 
-## 🧱 数据库表设计（商品表）
+## 数据库表设计（商品表）
 
 ```sql
 CREATE TABLE products (
