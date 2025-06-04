@@ -16,9 +16,9 @@ func SetupRouter(ph *handler.ProductHandler /*sh *handler.SaleHandler*/) http.Ha
 	})
 
 	//手动分组路由 因为net/http不支持分组路由
-	mux.HandleFunc("POST /api/v1/admin/product/initialize", ph.HandleInitializeProduct)
+	mux.HandleFunc("POST /api/v1/product/initialize", ph.HandleInitializeProduct)
 
-	//mux.HandleFunc("GET /api/v1/product", ph.HandleGetProductDetails)
+	//mux.HandleFunc("GET /api/v1/product/{id}", ph.HandleGetProductDetails)
 	//mux.HandleFunc("POST /api/v1/sale/attempt", sh.HandleSaleAttempt)
 	// mux.HandleFunc("GET /api/v1/product", ph.HandleGetProductDetails)
 	// mux.HandleFunc("POST /api/v1/sale/attempt", sh.HandleSaleAttempt)

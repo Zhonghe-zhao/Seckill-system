@@ -12,20 +12,23 @@ import (
 )
 
 type ProductService struct {
-	redisStockRepo       repository.StockRepository       // Redis 库存操作
-	redisProductInfoRepo repository.ProductInfoRepository // Redis 商品信息缓存操作
-	dbRepo               repository.DBRepository          // GORM 数据库商品操作
+	productCache repository.ProductCache
+	orderCache   repository.OrderCache
+	productDB    repository.ProductStorage
+	orderDB      repository.OrderStorage
 }
 
 func NewProductService(
-	rsr repository.StockRepository,
-	rpir repository.ProductInfoRepository,
-	dbr repository.DBRepository,
+	productCache repository.ProductCache,
+	//orderCache repository.OrderCache,
+	productDB repository.ProductStorage,
+	// orderDB repository.OrderStorage,
 ) *ProductService {
 	return &ProductService{
-		redisStockRepo:       rsr,
-		redisProductInfoRepo: rpir,
-		dbRepo:               dbr,
+		productCache: productCache,
+		//orderCache:   orderCache,
+		productDB: productDB,
+		//orderDB:      orderDB,
 	}
 }
 
@@ -38,7 +41,7 @@ func (s *ProductService) InitializeProduct(ctx context.Context, name, descriptio
 		StartTime:   startTime,
 		EndTime:     endTime,
 	}
-	if err := s.dbRepo.CreateProduct(ctx, dbProduct); err != nil {
+	if err := s.productDB.CreateProduct(ctx, dbProduct); err != nil {
 		return nil, fmt.Errorf("创建商品到数据库失败: %w", err)
 	}
 	log.Printf("商品 '%s' (DB ID: %d) 成功保存到数据库", dbProduct.Name, dbProduct.ID)
@@ -54,7 +57,7 @@ func (s *ProductService) InitializeProduct(ctx context.Context, name, descriptio
 		StartTime:   dbProduct.StartTime,
 		EndTime:     dbProduct.EndTime,
 	}
-	if err := s.redisProductInfoRepo.SetProductInfo(ctx, cacheProduct); err != nil {
+	if err := s.productCache.SetProductInfo(ctx, cacheProduct); err != nil {
 		log.Printf("警告: 商品 (DB ID: %d) 数据库创建成功，但缓存商品信息到 Redis 失败: %v. Key: product_info:%s", dbProduct.ID, err, redisProductIDStr)
 	}
 	log.Printf("商品 '%s' (DB ID: %d, Redis Key ID: %s) 初始化完成，初始库存: %d", dbProduct.Name, dbProduct.ID, redisProductIDStr, initialStock)
