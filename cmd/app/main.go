@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -9,7 +10,8 @@ import (
 	"github.com/Zhonghe-zhao/seckill-system/internal/config"
 	"github.com/Zhonghe-zhao/seckill-system/internal/handler"
 	"github.com/Zhonghe-zhao/seckill-system/internal/model"
-	"github.com/Zhonghe-zhao/seckill-system/internal/repository"
+	"github.com/Zhonghe-zhao/seckill-system/internal/repository/db"
+	"github.com/Zhonghe-zhao/seckill-system/internal/repository/rds"
 	"github.com/Zhonghe-zhao/seckill-system/internal/router"
 	"github.com/Zhonghe-zhao/seckill-system/internal/service"
 	"github.com/redis/go-redis/v9"
@@ -18,37 +20,36 @@ import (
 )
 
 func main() {
-	cfg, err := config.LoadConfig(".")
+	cfg, err := config.LoadConfig("../..")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+	log.Println("配置加载成功")
 
 	// 初始化数据库
-	db, err := gorm.Open(postgres.Open(cfg.DBSource), &gorm.Config{})
+	pg, err := gorm.Open(postgres.Open(cfg.DBSource), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	RunMigrations(db)
-
+	RunMigrations(pg)
 	// 初始化 Redis
 	redisClient := InitRedisClient(&cfg)
-
 	//初始化各层组件
 	// 假设 service.ProductService 是一个结构体类型，需要先实例化它
-
-	redisRepository := repository.NewRedisRepository(redisClient)
-	DRepository := repository.NewDBRepository(db)
-
-	productService := service.NewProductService(redisRepository, redisRepository, DRepository)
+	RedisRepository := rds.NewRedisRepository(redisClient)
+	DRepository := db.NewDBRepository(pg)
+	productService := service.NewProductService(RedisRepository, DRepository)
 	productHandler := handler.NewProductHandler(productService)
 
 	// 初始化路由器（你可以将 db 和 rdb 注入进去，如果后续需要使用）
 
 	router := router.SetupRouter(productHandler)
+	fmt.Printf("服务器启动成功，监听地址: %s\n", cfg.HTTPServerAddress)
 	err = http.ListenAndServe(cfg.HTTPServerAddress, router)
 	if err != nil {
 		log.Fatalf("服务器启动失败: %v", err)
 	}
+
 }
 
 func RunMigrations(db *gorm.DB) {
